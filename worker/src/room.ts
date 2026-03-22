@@ -538,18 +538,42 @@ export class GomokuRoom extends DurableObject {
 
     // 检查得分
     const newLines = findScoringLines(this.board, row, col);
+    const removedCells: number[] = [];
     if (newLines.length > 0) {
       this.scores[att.playerId] =
         (this.scores[att.playerId] || 0) + newLines.length;
       this.scoredLines = newLines;
+      // 收集并移除连成五子的棋子
+      const seen = new Set<string>();
+      for (const line of newLines) {
+        for (let i = 0; i < line.length; i += 2) {
+          const r = line[i]!;
+          const c = line[i + 1]!;
+          const key = `${r},${c}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            removedCells.push(r, c);
+            this.board[r]![c] = 0;
+          }
+        }
+      }
     } else {
       this.scoredLines = [];
     }
 
-    this.lastMove = { row, col };
-
     // 切换回合
     this.currentTurn = this.currentTurn === 1 ? 2 : 1;
+
+    // 广播时带上 scoredLines 用于客户端短暂展示
+    const broadcastLines = this.scoredLines;
+
+    // 得分后棋子已移除，持久化时清理 scoredLines/lastMove 避免重连时显示异常
+    if (removedCells.length > 0) {
+      this.scoredLines = [];
+      this.lastMove = null;
+    } else {
+      this.lastMove = { row, col };
+    }
 
     await this.save({
       board: this.board,
@@ -568,7 +592,8 @@ export class GomokuRoom extends DurableObject {
       playerId: att.playerId,
       currentTurn: this.currentTurn,
       scores: { ...this.scores },
-      scoredLines: this.scoredLines,
+      scoredLines: broadcastLines,
+      removedCells,
     });
 
     // 得分系统消息

@@ -75,6 +75,7 @@ export interface S_PiecePlaced {
   currentTurn: number;
   scores: Record<string, number>;
   scoredLines: number[][];
+  removedCells: number[];
 }
 
 export interface S_GameEnd {

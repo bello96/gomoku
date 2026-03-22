@@ -25,9 +25,9 @@ function drawPiece(
   color: number,
 ) {
   // 阴影
-  ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
   ctx.beginPath();
-  ctx.arc(x + radius * 0.08, y + radius * 0.08, radius, 0, Math.PI * 2);
+  ctx.arc(x + radius * 0.06, y + radius * 0.06, radius, 0, Math.PI * 2);
   ctx.fill();
 
   // 棋子本体 - 径向渐变
@@ -89,17 +89,17 @@ function drawBoard(
   lastMove: { row: number; col: number } | null,
   scoredLines: number[][],
 ) {
-  const padding = size * 0.06;
+  const padding = size * 0.05;
   const cellSize = (size - 2 * padding) / (BOARD_SIZE - 1);
   const pieceRadius = cellSize * 0.42;
 
-  // 木质背景
-  ctx.fillStyle = "#D4A460";
+  // 暖色棋盘背景
+  ctx.fillStyle = "#F5E6C8";
   ctx.fillRect(0, 0, size, size);
 
   // 棋盘边框
-  ctx.strokeStyle = "#8B6914";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#D4B896";
+  ctx.lineWidth = 1.5;
   ctx.strokeRect(
     padding - 2,
     padding - 2,
@@ -108,8 +108,8 @@ function drawBoard(
   );
 
   // 网格线
-  ctx.strokeStyle = "#5C4033";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#C4A882";
+  ctx.lineWidth = 0.8;
   for (let i = 0; i < BOARD_SIZE; i++) {
     const pos = padding + i * cellSize;
     ctx.beginPath();
@@ -124,13 +124,13 @@ function drawBoard(
   }
 
   // 星位
-  ctx.fillStyle = "#5C4033";
+  ctx.fillStyle = "#B09070";
   for (const [r, c] of STAR_POINTS) {
     ctx.beginPath();
     ctx.arc(
       padding + c * cellSize,
       padding + r * cellSize,
-      cellSize * 0.1,
+      cellSize * 0.09,
       0,
       Math.PI * 2,
     );
@@ -142,13 +142,11 @@ function drawBoard(
     if (line.length < 4) {
       continue;
     }
-    // 收集坐标对
     const coords: [number, number][] = [];
     for (let i = 0; i < line.length; i += 2) {
       coords.push([line[i]!, line[i + 1]!]);
     }
-    // 每个得分点上画金色圆圈
-    ctx.strokeStyle = "rgba(255, 215, 0, 0.8)";
+    ctx.strokeStyle = "rgba(255, 180, 0, 0.85)";
     ctx.lineWidth = 2.5;
     for (const [r, c] of coords) {
       ctx.beginPath();
@@ -161,9 +159,8 @@ function drawBoard(
       );
       ctx.stroke();
     }
-    // 连线
     if (coords.length >= 2) {
-      ctx.strokeStyle = "rgba(255, 215, 0, 0.5)";
+      ctx.strokeStyle = "rgba(255, 180, 0, 0.5)";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(
@@ -198,8 +195,7 @@ function drawBoard(
   if (lastMove) {
     const lx = padding + lastMove.col * cellSize;
     const ly = padding + lastMove.row * cellSize;
-    const lastColor = board[lastMove.row]?.[lastMove.col];
-    ctx.fillStyle = lastColor === 1 ? "#ff4444" : "#ff4444";
+    ctx.fillStyle = "#ef4444";
     ctx.beginPath();
     ctx.arc(lx, ly, pieceRadius * 0.22, 0, Math.PI * 2);
     ctx.fill();
@@ -239,7 +235,7 @@ export default function GomokuBoard({
     row: number;
     col: number;
   } | null>(null);
-  const [size, setSize] = useState(560);
+  const [size, setSize] = useState(400);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -249,7 +245,7 @@ export default function GomokuBoard({
 
     const measure = () => {
       const rect = container.getBoundingClientRect();
-      setSize(Math.floor(Math.min(rect.width, rect.height, 640)));
+      setSize(Math.floor(Math.min(rect.width, rect.height)));
     };
 
     measure();
@@ -295,7 +291,7 @@ export default function GomokuBoard({
       const x = ((e.clientX - rect.left) / rect.width) * size;
       const y = ((e.clientY - rect.top) / rect.height) * size;
 
-      const padding = size * 0.06;
+      const padding = size * 0.05;
       const cellSize = (size - 2 * padding) / (BOARD_SIZE - 1);
 
       const col = Math.round((x - padding) / cellSize);
@@ -321,14 +317,15 @@ export default function GomokuBoard({
   return (
     <div
       ref={containerRef}
-      className="w-full flex items-center justify-center"
-      style={{ aspectRatio: "1", maxWidth: 640 }}
+      className="w-full h-full flex items-center justify-center"
+      style={{ minWidth: 320, minHeight: 320 }}
     >
       <canvas
         ref={canvasRef}
         style={{
           width: size,
           height: size,
+          borderRadius: 12,
           cursor: isMyTurn && !disabled ? "pointer" : "default",
         }}
         onMouseMove={(e) => {
