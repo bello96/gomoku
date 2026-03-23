@@ -93,12 +93,12 @@ function drawBoard(
   const cellSize = (size - 2 * padding) / (BOARD_SIZE - 1);
   const pieceRadius = cellSize * 0.42;
 
-  // 暖色棋盘背景
-  ctx.fillStyle = "#F5E6C8";
+  // 浅色棋盘背景
+  ctx.fillStyle = "#EEF2F6";
   ctx.fillRect(0, 0, size, size);
 
   // 棋盘边框
-  ctx.strokeStyle = "#D4B896";
+  ctx.strokeStyle = "#CBD5E0";
   ctx.lineWidth = 1.5;
   ctx.strokeRect(
     padding - 2,
@@ -108,7 +108,7 @@ function drawBoard(
   );
 
   // 网格线
-  ctx.strokeStyle = "#C4A882";
+  ctx.strokeStyle = "#B0BEC9";
   ctx.lineWidth = 0.8;
   for (let i = 0; i < BOARD_SIZE; i++) {
     const pos = padding + i * cellSize;
@@ -124,7 +124,7 @@ function drawBoard(
   }
 
   // 星位
-  ctx.fillStyle = "#B09070";
+  ctx.fillStyle = "#8A9BB0";
   for (const [r, c] of STAR_POINTS) {
     ctx.beginPath();
     ctx.arc(

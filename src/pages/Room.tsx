@@ -380,10 +380,11 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
           {(phase === "waiting" || phase === "readying") && (
             <div className="bg-white rounded-lg px-4 py-3 shadow-sm shrink-0">
               {phase === "waiting" && (
-                <div className="text-center text-gray-500 text-sm">
+                <div className="text-center text-gray-500 text-sm py-[2px]">
                   等待对手加入...
                 </div>
               )}
+
               {phase === "readying" && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
