@@ -317,135 +317,132 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
       <div className="flex-1 flex gap-2 min-h-0">
         {/* 左侧：游戏区 */}
         <div className="flex-1 flex flex-col gap-1.5 min-w-0 min-h-0">
-          {/* 分数栏 + 倒计时 + 投降按钮 */}
-          {phase === "playing" && (
-            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-3 shadow-sm shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition text-sm ${
-                    currentTurn === 1
-                      ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-300"
-                      : "bg-gray-50 text-gray-500"
-                  }`}
-                >
-                  <span className="w-3.5 h-3.5 rounded-full bg-gray-900 border border-gray-400 inline-block" />
-                  <span className="font-medium">
-                    {blackPlayer?.name || "黑棋"}
-                  </span>
-                  <span className="font-bold">
-                    {scores[blackPlayerId || ""] || 0}
-                  </span>
-                </div>
-                <span className="text-gray-300 text-xs font-bold">VS</span>
-                <div
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition text-sm ${
-                    currentTurn === 2
-                      ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-300"
-                      : "bg-gray-50 text-gray-500"
-                  }`}
-                >
-                  <span className="w-3.5 h-3.5 rounded-full bg-white border border-gray-400 inline-block" />
-                  <span className="font-medium">
-                    {whitePlayer?.name || "白棋"}
-                  </span>
-                  <span className="font-bold">
-                    {scores[whitePlayerId || ""] || 0}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                {isMyTurn && (
-                  <span className="text-xs text-green-600 font-medium animate-pulse">
-                    轮到你了
-                  </span>
-                )}
-                {remainingSeconds !== null && (
-                  <span
-                    className={`font-mono text-sm font-bold ${remainingSeconds <= 30 ? "text-red-500" : "text-gray-600"}`}
+          {/* 状态栏：固定高度，避免切换阶段时容器跳动 */}
+          <div className="bg-white rounded-lg px-4 shadow-sm shrink-0 h-[46px] flex items-center">
+            {phase === "playing" && (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition text-sm ${
+                      currentTurn === 1
+                        ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-300"
+                        : "bg-gray-50 text-gray-500"
+                    }`}
                   >
-                    {formatTime(remainingSeconds)}
-                  </span>
-                )}
-                <button
-                  className="px-2.5 py-1 text-xs rounded-md transition font-medium bg-red-50 text-red-500 hover:bg-red-100"
-                  onClick={handleSurrender}
-                >
-                  投降
-                </button>
+                    <span className="w-3.5 h-3.5 rounded-full bg-gray-900 border border-gray-400 inline-block" />
+                    <span className="font-medium">
+                      {blackPlayer?.name || "黑棋"}
+                    </span>
+                    <span className="font-bold">
+                      {scores[blackPlayerId || ""] || 0}
+                    </span>
+                  </div>
+                  <span className="text-gray-300 text-xs font-bold">VS</span>
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition text-sm ${
+                      currentTurn === 2
+                        ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-300"
+                        : "bg-gray-50 text-gray-500"
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 rounded-full bg-white border border-gray-400 inline-block" />
+                    <span className="font-medium">
+                      {whitePlayer?.name || "白棋"}
+                    </span>
+                    <span className="font-bold">
+                      {scores[whitePlayerId || ""] || 0}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  {isMyTurn && (
+                    <span className="text-xs text-green-600 font-medium animate-pulse">
+                      轮到你了
+                    </span>
+                  )}
+                  {remainingSeconds !== null && (
+                    <span
+                      className={`font-mono text-sm font-bold ${remainingSeconds <= 30 ? "text-red-500" : "text-gray-600"}`}
+                    >
+                      {formatTime(remainingSeconds)}
+                    </span>
+                  )}
+                  <button
+                    className="px-2.5 py-1 text-xs rounded-md transition font-medium bg-red-50 text-red-500 hover:bg-red-100"
+                    onClick={handleSurrender}
+                  >
+                    投降
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* 等待/准备区 */}
-          {(phase === "waiting" || phase === "readying") && (
-            <div className="bg-white rounded-lg px-4 py-3 shadow-sm shrink-0">
-              {phase === "waiting" && (
-                <div className="text-center text-gray-500 text-sm py-[2px]">
-                  等待对手加入...
-                </div>
-              )}
+            {phase === "waiting" && (
+              <div className="text-center text-gray-500 text-sm w-full">
+                等待对手加入...
+              </div>
+            )}
 
-              {phase === "readying" && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {isOwner && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">时长</span>
-                        <div className="flex gap-1">
-                          {TIMER_OPTIONS.map((m) => (
-                            <button
-                              key={m}
-                              className={`px-2 py-0.5 text-xs rounded-md transition ${
-                                timerMinutes === m
-                                  ? "bg-indigo-600 text-white"
-                                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                              }`}
-                              onClick={() => handleSetTimer(m)}
-                            >
-                              {m}分
-                            </button>
-                          ))}
-                        </div>
+            {phase === "readying" && (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  {isOwner && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">时长</span>
+                      <div className="flex gap-1">
+                        {TIMER_OPTIONS.map((m) => (
+                          <button
+                            key={m}
+                            className={`px-2 py-0.5 text-xs rounded-md transition ${
+                              timerMinutes === m
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                            onClick={() => handleSetTimer(m)}
+                          >
+                            {m}分
+                          </button>
+                        ))}
                       </div>
-                    )}
-                    {!isOwner && (
-                      <span className="text-xs text-gray-500">
-                        时长：{timerMinutes}分钟
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    {!isOwner && (
-                      <button
-                        className={`px-3 py-1 text-xs rounded-md transition font-medium ${
-                          meReady
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                            : "bg-indigo-600 text-white hover:bg-indigo-700"
-                        }`}
-                        onClick={handleReady}
-                      >
-                        {meReady ? "已准备 (取消)" : "准备"}
-                      </button>
-                    )}
-                    {isOwner && (
-                      <>
-                        <span className="text-xs text-gray-400">
-                          {opponentReady ? "对手已准备" : "等待对手准备..."}
-                        </span>
-                        <button
-                          className="px-3 py-1 text-xs rounded-md transition font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
-                          disabled={!opponentReady}
-                          onClick={handleStartGame}
-                        >
-                          开始游戏
-                        </button>
-                      </>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  {!isOwner && (
+                    <span className="text-xs text-gray-500">
+                      时长：{timerMinutes}分钟
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+                <div className="flex items-center gap-2.5">
+                  {!isOwner && (
+                    <button
+                      className={`px-3 py-1 text-xs rounded-md transition font-medium ${
+                        meReady
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-indigo-600 text-white hover:bg-indigo-700"
+                      }`}
+                      onClick={handleReady}
+                    >
+                      {meReady ? "已准备 (取消)" : "准备"}
+                    </button>
+                  )}
+                  {isOwner && (
+                    <>
+                      <span className="text-xs text-gray-400">
+                        {opponentReady ? "对手已准备" : "等待对手准备..."}
+                      </span>
+                      <button
+                        className="px-3 py-1 text-xs rounded-md transition font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                        disabled={!opponentReady}
+                        onClick={handleStartGame}
+                      >
+                        开始游戏
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* 棋盘 - 撑满剩余高度 */}
           <div className="flex-1 min-h-0">
