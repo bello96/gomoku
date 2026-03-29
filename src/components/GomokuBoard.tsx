@@ -1,6 +1,71 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const BOARD_SIZE = 15;
+
+let audioCtx: AudioContext | null = null;
+function playPlaceSound() {
+  if (!audioCtx) {
+    audioCtx = new AudioContext();
+  }
+  const ctx = audioCtx;
+  const now = ctx.currentTime;
+
+  // 噪声冲击 —— 模拟棋子撞击棋盘的瞬态"嗒"声
+  const bufferLen = Math.floor(ctx.sampleRate * 0.04);
+  const noiseBuffer = ctx.createBuffer(1, bufferLen, ctx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferLen; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferLen * 0.08));
+  }
+  const noiseSrc = ctx.createBufferSource();
+  noiseSrc.buffer = noiseBuffer;
+
+  // 带通滤波 —— 只留 1–4 kHz，听起来像硬物碰撞
+  const bandpass = ctx.createBiquadFilter();
+  bandpass.type = "bandpass";
+  bandpass.frequency.value = 2500;
+  bandpass.Q.value = 1.2;
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.6, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+  noiseSrc.connect(bandpass);
+  bandpass.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noiseSrc.start(now);
+  noiseSrc.stop(now + 0.05);
+
+  // 低频共振 —— 模拟棋盘木板的短促"咚"声
+  const thunk = ctx.createOscillator();
+  thunk.type = "sine";
+  thunk.frequency.setValueAtTime(150, now);
+  thunk.frequency.exponentialRampToValueAtTime(80, now + 0.06);
+
+  const thunkGain = ctx.createGain();
+  thunkGain.gain.setValueAtTime(0.25, now);
+  thunkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+  thunk.connect(thunkGain);
+  thunkGain.connect(ctx.destination);
+  thunk.start(now);
+  thunk.stop(now + 0.1);
+
+  // 中频敲击 —— 棋子本体的清脆质感
+  const tap = ctx.createOscillator();
+  tap.type = "triangle";
+  tap.frequency.setValueAtTime(600, now);
+  tap.frequency.exponentialRampToValueAtTime(300, now + 0.03);
+
+  const tapGain = ctx.createGain();
+  tapGain.gain.setValueAtTime(0.15, now);
+  tapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+  tap.connect(tapGain);
+  tapGain.connect(ctx.destination);
+  tap.start(now);
+  tap.stop(now + 0.06);
+}
 const STAR_POINTS: [number, number][] = [
   [3, 3], [3, 7], [3, 11],
   [7, 3], [7, 7], [7, 11],
@@ -236,6 +301,14 @@ export default function GomokuBoard({
     col: number;
   } | null>(null);
   const [size, setSize] = useState(400);
+
+  const prevLastMoveRef = useRef(lastMove);
+  useEffect(() => {
+    if (lastMove && lastMove !== prevLastMoveRef.current) {
+      playPlaceSound();
+    }
+    prevLastMoveRef.current = lastMove;
+  }, [lastMove]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -22,6 +22,7 @@ export default function Home({ onEnterRoom, urlError }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tip, setTip] = useState("");
+  const [showJoin, setShowJoin] = useState(false);
 
   function clearTip() {
     setTip("");
@@ -94,9 +95,10 @@ export default function Home({ onEnterRoom, urlError }: Props) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#eff2ff]">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <h1 className="text-4xl font-bold text-center mb-2 text-indigo-600">
-          五子棋对战
-        </h1>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="text-4xl">♟</span>
+          <h1 className="text-4xl font-bold text-indigo-600">五子棋对战</h1>
+        </div>
         <p className="text-gray-500 text-center mb-8">
           双人在线对战，连五得分，限时比拼
         </p>
@@ -127,42 +129,63 @@ export default function Home({ onEnterRoom, urlError }: Props) {
           }}
         />
 
-        <button
-          className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition mb-6"
-          onClick={createRoom}
-          disabled={loading}
-        >
-          {loading ? "请稍候..." : "创建房间"}
-        </button>
-
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-sm text-gray-400">或加入房间</span>
-          <div className="flex-1 h-px bg-gray-200" />
-        </div>
-
-        <input
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-center text-2xl tracking-[0.5em] mb-3"
-          placeholder="房间号"
-          maxLength={6}
-          value={joinCode}
-          onChange={(e) => {
-            setJoinCode(e.target.value.replace(/\D/g, ""));
-            clearTip();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              joinRoom();
-            }
-          }}
-        />
-        <button
-          className="w-full py-3 px-4 bg-white text-indigo-600 font-semibold rounded-lg border-2 border-indigo-600 hover:bg-indigo-50 transition"
-          onClick={joinRoom}
-          disabled={loading}
-        >
-          加入房间
-        </button>
+        {!showJoin ? (
+          <>
+            <button
+              className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition mb-4"
+              onClick={createRoom}
+              disabled={loading}
+            >
+              {loading ? "请稍候..." : "创建房间"}
+            </button>
+            <button
+              className="w-full py-3 px-4 bg-white text-indigo-600 font-semibold rounded-lg border-2 border-indigo-600 hover:bg-indigo-50 transition"
+              onClick={() => {
+                setShowJoin(true);
+                setError("");
+                setTip("");
+              }}
+            >
+              加入房间
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-center text-xl tracking-[0.3em] mb-4"
+              placeholder="输入6位房间号"
+              maxLength={6}
+              value={joinCode}
+              onChange={(e) => {
+                setJoinCode(e.target.value.replace(/\D/g, ""));
+                clearTip();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  joinRoom();
+                }
+              }}
+            />
+            <button
+              className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition mb-4"
+              onClick={joinRoom}
+              disabled={loading}
+            >
+              {loading ? "请稍候..." : "加入房间"}
+            </button>
+            <button
+              className="w-full text-gray-500 text-sm hover:text-indigo-600 transition"
+              onClick={() => {
+                setShowJoin(false);
+                setJoinCode("");
+                setError("");
+                setTip("");
+              }}
+            >
+              返回
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
