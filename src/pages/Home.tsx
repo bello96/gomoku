@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getHttpBase } from "../api";
+import { checkJoinable, createRoom } from "../api";
 
 interface Props {
   onEnterRoom: (code: string, nickname: string) => void;
@@ -28,7 +28,7 @@ export default function Home({ onEnterRoom, urlError }: Props) {
     setTip("");
   }
 
-  async function createRoom() {
+  async function handleCreate() {
     setTip("");
     setError("");
     if (!nickname.trim()) {
@@ -37,14 +37,8 @@ export default function Home({ onEnterRoom, urlError }: Props) {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${getHttpBase()}/api/rooms`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        throw new Error("创建房间失败");
-      }
-      const data = (await res.json()) as { roomCode: string };
-      onEnterRoom(data.roomCode, nickname.trim());
+      const code = await createRoom();
+      onEnterRoom(code, nickname.trim());
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -68,28 +62,13 @@ export default function Home({ onEnterRoom, urlError }: Props) {
       return;
     }
     setLoading(true);
-    try {
-      const res = await fetch(`${getHttpBase()}/api/rooms/${joinCode}`);
-      if (!res.ok) {
-        throw new Error("房间不存在");
-      }
-      const info = (await res.json()) as {
-        roomCode: string;
-        playerCount: number;
-        closed: boolean;
-      };
-      if (info.closed || !info.roomCode) {
-        throw new Error("房间不存在或已关闭");
-      }
-      if (info.playerCount >= 2) {
-        throw new Error("房间已满，无法加入");
-      }
-      onEnterRoom(joinCode, nickname.trim());
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
+    const err = await checkJoinable(joinCode);
+    setLoading(false);
+    if (err) {
+      setError(err);
+      return;
     }
+    onEnterRoom(joinCode, nickname.trim());
   }
 
   return (
@@ -133,7 +112,7 @@ export default function Home({ onEnterRoom, urlError }: Props) {
           <>
             <button
               className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition mb-4"
-              onClick={createRoom}
+              onClick={handleCreate}
               disabled={loading}
             >
               {loading ? "请稍候..." : "创建房间"}

@@ -357,7 +357,7 @@ export class GomokuRoom extends DurableObject {
 
       const existing = this.findWsByPlayerId(requestedId);
       if (existing) {
-        this.setAttachment(existing, null as unknown as WsAttachment);
+        this.setAttachment(existing, null);
         try {
           existing.close(1000, "Replaced");
         } catch {
@@ -977,7 +977,11 @@ export class GomokuRoom extends DurableObject {
     if (this.chatHistory.length > MAX_CHAT) {
       this.chatHistory = this.chatHistory.slice(-MAX_CHAT);
     }
-    this.ctx.storage.put({ chatHistory: this.chatHistory });
+    // DO storage 写入并入 input gate，未显式 await 仍会随调用栈一并刷盘，
+    // 但显式 ctx.waitUntil 可以更明确地表达"必须完成"
+    this.ctx.waitUntil(
+      this.ctx.storage.put({ chatHistory: this.chatHistory }),
+    );
     return msg;
   }
 
@@ -993,7 +997,7 @@ export class GomokuRoom extends DurableObject {
     }
   }
 
-  private setAttachment(ws: WebSocket, att: WsAttachment) {
+  private setAttachment(ws: WebSocket, att: WsAttachment | null) {
     ws.serializeAttachment(att);
   }
 
@@ -1039,7 +1043,7 @@ export class GomokuRoom extends DurableObject {
     for (const ws of this.getWebSockets()) {
       const att = this.getAttachment(ws);
       if (att?.playerId === playerId) {
-        this.setAttachment(ws, null as unknown as WsAttachment);
+        this.setAttachment(ws, null);
       }
     }
   }

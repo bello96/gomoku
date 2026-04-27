@@ -30,16 +30,33 @@ export default {
 
     // POST /api/rooms → 创建房间
     if (path === "/api/rooms" && request.method === "POST") {
-      const code = generateRoomCode();
-      const id = env.GOMOKU_ROOM.idFromName(code);
-      const stub = env.GOMOKU_ROOM.get(id);
-      await stub.fetch(
-        new Request("https://internal/init", {
-          method: "POST",
-          body: JSON.stringify({ roomCode: code }),
-        }),
-      );
-      return json({ roomCode: code });
+      // 6 位数字仅有 100 万种取值，需要重试避免覆盖已存在房间
+      const MAX_ATTEMPTS = 10;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const code = generateRoomCode();
+        const id = env.GOMOKU_ROOM.idFromName(code);
+        const stub = env.GOMOKU_ROOM.get(id);
+
+        const probe = await stub.fetch(
+          new Request("https://internal/info", { method: "GET" }),
+        );
+        if (probe.ok) {
+          const info = (await probe.json()) as { roomCode?: string };
+          if (info.roomCode) {
+            // 房间号已被占用，换一个
+            continue;
+          }
+        }
+
+        await stub.fetch(
+          new Request("https://internal/init", {
+            method: "POST",
+            body: JSON.stringify({ roomCode: code }),
+          }),
+        );
+        return json({ roomCode: code });
+      }
+      return json({ error: "Failed to allocate room code" }, 503);
     }
 
     // /api/rooms/:code/*

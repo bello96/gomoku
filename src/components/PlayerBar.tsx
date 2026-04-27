@@ -7,7 +7,7 @@ interface Props {
   ownerId: string | null;
   myId: string | null;
   phase: GamePhase;
-  onPlayAgain?: () => void;
+  onPlayAgain: () => void;
   onTransferOwner: () => void;
   onLeave: () => void;
 }
@@ -109,7 +109,7 @@ export default function PlayerBar({
       </div>
 
       <div className="flex-1 flex items-center justify-end gap-2">
-        {myId === ownerId && phase === "ended" && onPlayAgain && (
+        {myId === ownerId && phase === "ended" && (
           <button
             className="px-3 py-1.5 text-sm rounded-lg transition bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
             onClick={onPlayAgain}

@@ -5,7 +5,14 @@ const BOARD_SIZE = 15;
 let audioCtx: AudioContext | null = null;
 function playPlaceSound() {
   if (!audioCtx) {
-    audioCtx = new AudioContext();
+    const Ctor =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+    if (!Ctor) {
+      return;
+    }
+    audioCtx = new Ctor();
   }
   const ctx = audioCtx;
   const now = ctx.currentTime;
@@ -302,9 +309,20 @@ export default function GomokuBoard({
   } | null>(null);
   const [size, setSize] = useState(400);
 
-  const prevLastMoveRef = useRef(lastMove);
+  // 重连时通过 roomState 恢复的 lastMove 不触发声音；后续每次新落子都触发
+  const mountedRef = useRef(false);
+  const prevLastMoveRef = useRef<{ row: number; col: number } | null>(null);
   useEffect(() => {
-    if (lastMove && lastMove !== prevLastMoveRef.current) {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      prevLastMoveRef.current = lastMove;
+      return;
+    }
+    const prev = prevLastMoveRef.current;
+    if (
+      lastMove &&
+      (!prev || prev.row !== lastMove.row || prev.col !== lastMove.col)
+    ) {
       playPlaceSound();
     }
     prevLastMoveRef.current = lastMove;

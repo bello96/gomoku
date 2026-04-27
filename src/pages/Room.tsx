@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getHttpBase, getWsBase } from "../api";
 import ChatPanel from "../components/ChatPanel";
 import Confetti from "../components/Confetti";
@@ -61,6 +61,9 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
   /* ── 倒计时 ── */
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
+  /* ── 错误提示 ── */
+  const [errorToast, setErrorToast] = useState("");
+
   /* ── WebSocket ── */
   const wsUrl = useMemo(
     () => `${getWsBase()}/api/rooms/${roomCode}/ws`,
@@ -68,12 +71,10 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
   );
   const { connected, send, addListener, leave } = useWebSocket(wsUrl);
 
-  const joinedRef = useRef(false);
-
-  // 加入房间
+  // 加入房间：每次 WebSocket 连接（含自动重连）后都需重新 join，
+  // 否则后端无法识别该连接，所有后续操作都会被拒绝
   useEffect(() => {
-    if (connected && !joinedRef.current) {
-      joinedRef.current = true;
+    if (connected) {
       send({ type: "join", playerName: nickname, playerId });
     }
   }, [connected, nickname, playerId, send]);
@@ -228,6 +229,8 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
           setChatMessages((prev) => [...prev, msg.message]);
           break;
         case "error":
+          setErrorToast(msg.message);
+          setTimeout(() => setErrorToast(""), 3000);
           break;
         case "roomClosed":
           alert(msg.reason);
@@ -530,6 +533,12 @@ export default function Room({ roomCode, nickname, playerId, onLeave }: Props) {
       )}
 
       <Confetti show={showConfetti} />
+
+      {errorToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+          {errorToast}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getHttpBase } from "./api";
+import { checkJoinable, fetchRoomInfo } from "./api";
 import Home from "./pages/Home";
 import Room from "./pages/Room";
 
@@ -57,14 +57,11 @@ export default function App() {
       }
       setNicknameInput(session?.nickname || "");
       setPendingCode(code);
-      fetch(`${getHttpBase()}/api/rooms/${code}`)
-        .then((res) => res.json())
-        .then((info: { ownerName?: string }) => {
-          if (info.ownerName) {
-            setPendingOwnerName(info.ownerName);
-          }
-        })
-        .catch(() => {});
+      fetchRoomInfo(code).then((info) => {
+        if (info?.ownerName) {
+          setPendingOwnerName(info.ownerName);
+        }
+      });
     }
   }, []);
 
@@ -79,35 +76,21 @@ export default function App() {
   async function confirmPendingJoin(code: string, name: string) {
     setPendingError("");
     setPendingLoading(true);
-    try {
-      const res = await fetch(`${getHttpBase()}/api/rooms/${code}`);
-      if (!res.ok) {
-        throw new Error("房间不存在");
-      }
-      const info = (await res.json()) as {
-        roomCode: string;
-        playerCount: number;
-        closed: boolean;
-      };
-      if (info.closed || !info.roomCode) {
-        throw new Error("房间不存在或已关闭");
-      }
-      if (info.playerCount >= 2) {
-        throw new Error("房间已满，无法加入");
-      }
-      enterRoom(code, name, genId());
-      setPendingCode(null);
-    } catch (e) {
+    const err = await checkJoinable(code);
+    if (err) {
       setPendingLoading(false);
-      setPendingError((e as Error).message);
+      setPendingError(err);
       setTimeout(() => {
         setPendingCode(null);
         setPendingError("");
-        setUrlError((e as Error).message);
+        setUrlError(err);
         window.history.replaceState(null, "", "/");
         setTimeout(() => setUrlError(""), 3000);
       }, 1500);
+      return;
     }
+    enterRoom(code, name, genId());
+    setPendingCode(null);
   }
 
   const handleEnterRoom = useCallback(
