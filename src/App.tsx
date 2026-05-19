@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { checkJoinable, fetchRoomInfo } from "./api";
 import Home from "./pages/Home";
 import Room from "./pages/Room";
-import bgImage from "./bg.png";
+
 
 interface RoomSession {
   roomCode: string;
@@ -112,10 +112,8 @@ export default function App() {
   if (pendingCode) {
     return (
       <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat flex items-center justify-center z-50"
-        style={{ backgroundImage: `url(${bgImage})` }}
+        className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: "#F0F2FF" }}
       >
-        <div className="absolute inset-0 bg-black/30" />
         <div className="relative bg-white/90 backdrop-blur-md rounded-2xl p-8 w-full max-w-sm shadow-xl mx-4">
           {pendingOwnerName && (
             <div className="text-center mb-4">

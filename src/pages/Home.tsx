@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { checkJoinable, createRoom } from "../api";
-import bgImage from "../bg.png";
+
 
 interface Props {
   onEnterRoom: (code: string, nickname: string) => void;
@@ -74,8 +74,7 @@ export default function Home({ onEnterRoom, urlError }: Props) {
 
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-screen p-4 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className="flex flex-col items-center justify-center min-h-screen p-4" style={{ backgroundColor: "#F0F2FF" }}
     >
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-2">
