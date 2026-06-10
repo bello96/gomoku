@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { checkJoinable, createRoom } from "../api";
 
-
 interface Props {
   onEnterRoom: (code: string, nickname: string) => void;
   urlError?: string;
@@ -73,9 +72,7 @@ export default function Home({ onEnterRoom, urlError }: Props) {
   }
 
   return (
-    <div
-      className="flex flex-col items-center justify-center min-h-screen p-4" style={{ backgroundColor: "#F0F2FF" }}
-    >
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-4xl">♟</span>
